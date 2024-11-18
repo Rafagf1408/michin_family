@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álbum de Fotografías y Videos</title>
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .album-container {
+            width: 90%;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        /* Estilo para la imagen principal */
+        .main-image-container {
+            width: 100%;
+            text-align: center;
+            
+        }
+
+        .main-image {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 20px; /* Redondear las esquinas */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Añadir sombra opcional */
+        }
+
+        /* Estilo para las imágenes y videos en miniatura */
+        .thumbnail-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            border-radius: 20px; /* Redondear las esquinas */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Añadir sombra opcional */
+        }
+
+        .thumbnail-container img,
+        .thumbnail-container video {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .thumbnail-container img:hover,
+        .thumbnail-container video:hover {
+            transform: scale(1.05);
+        }
+
+        /* Estilo para la visualización de imagen y video en tamaño completo */
+        .lightbox,
+        .video-lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .lightbox img,
+        .video-lightbox video {
+            max-width: 90%;
+            max-height: 90%;
+            margin: 10px;
+        }
+
+        .lightbox .close-btn,
+        .video-lightbox .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            padding: 5px 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Consultas de medios para responsividad */
+        @media (max-width: 767px) {
+            .thumbnail-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-image {
+                max-width: 100%;
+            }
+
+            .thumbnail-container img,
+            .thumbnail-container video {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .thumbnail-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+         /* Estilo para el div redondeado */
+         .rounded-box {
+            position: relative; /* Necesario para los corazones */
+            background: linear-gradient(90deg, rgba(131,58,180,1) 69%, rgba(253,29,29,1) 95%, rgba(252,176,69,1) 100%); /* Color de fondo */
+            color: white; /* Color del texto */
+            font-size: 1.2em; /* Tamaño de texto relativo */
+            font-family: Arial, sans-serif; /* Tipo de fuente */
+            padding: 20px; /* Espaciado interno */
+            border-radius: 15px; /* Bordes redondeados */
+            width: 90%; /* Ancho responsivo */
+            max-width: 1000px; /* Ancho máximo */
+            text-align: center; /* Centrar el texto */
+            box-shadow: 5px 5px 10px;   /* Sombra suave */
+            margin: 20px auto; /* Centrar el div en la página */
+            box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+        }
+
+        /* Efecto hover */
+        .rounded-box:hover {
+            background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(204,70,252,1) 100%); /* Color de fondo cuando se pasa el mouse */
+        }
+
+        /* Corazones en el borde */
+        .rounded-box::before,
+        .rounded-box::after,
+        .rounded-box .top-left,
+        .rounded-box .top-right,
+        .rounded-box .bottom-left,
+        .rounded-box .bottom-right,
+        .rounded-box .top,
+        .rounded-box .bottom,
+        .rounded-box .left,
+        .rounded-box .right {
+            content: "♥"; /* Corazón */
+            position: absolute;
+            font-size: 1.5em; /* Tamaño de los corazones */
+            color: red; /* Color de los corazones */
+        }
+
+        /* Posición de los corazones */
+        .rounded-box::before {
+            top: -10px;
+            left: -10px;
+        }
+
+        .rounded-box::after {
+            top: -10px;
+            right: -10px;
+        }
+
+        .rounded-box .top-left {
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .rounded-box .top-right {
+            top: -10px;
+            right: 50%;
+            transform: translateX(50%);
+        }
+
+        .rounded-box .bottom-left {
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .rounded-box .bottom-right {
+            bottom: -10px;
+            right: 50%;
+            transform: translateX(50%);
+        }
+
+        .rounded-box .top {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .rounded-box .bottom {
+            bottom: 50%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .rounded-box .left {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 50%;
+        }
+
+        .rounded-box .right {
+            top: 50%;
+            right: 0;
+            width: 100%;
+            height: 50%;
+        }
+
+       
+
+
+        /* Media Queries para dispositivos móviles */
+        @media (max-width: 600px) {
+            .rounded-box {
+                width: 90%; /* Aumenta el ancho para pantallas pequeñas */
+                font-size: 1em; /* Ajusta el tamaño del texto */
+                padding: 15px; /* Reduce el padding */
+            }
+
+            .rounded-box .top,
+            .rounded-box .bottom {
+                display: block; /* Pone los corazones en una línea vertical en pantallas pequeñas */
+                font-size: 1.2em; /* Reduce el tamaño de los corazones */
+            }
+
+            .rounded-box .top-left,
+            .rounded-box .top-right,
+            .rounded-box .bottom-left,
+            .rounded-box .bottom-right {
+                font-size: 1.2em; /* Reduce el tamaño de los corazones */
+                top: -5px; /* Ajusta la posición de los corazones */
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Media Queries para pantallas más grandes (tablet, etc.) */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .rounded-box {
+                width: 80%; /* Ajusta el ancho para pantallas medianas */
+                font-size: 1.1em; /* Ajusta el tamaño del texto */
+            }
+
+            .rounded-box .top-left,
+            .rounded-box .top-right,
+            .rounded-box .bottom-left,
+            .rounded-box .bottom-right {
+                font-size: 1.4em; /* Tamaño intermedio de los corazones */
+            }
+        }
+
+
+        
+
+    </style>
+</head>
+<body style="background-image: url(img/michin\ \(28\).jpg);">
+    <div class="album-container">
+        <!-- Imagen principal -->
+        <div class="main-image-container">
+            <img src="img/fotito principal.jpg" alt="Imagen Principal" class="main-image">
+           
+        </div>
+
+        <div class="rounded-box">
+            <p>Se que estaran en mi futuro noble y en mis sueños de esta noche.
+                Tocare su cabello y en donde descansan las estrellas, estaremos tu, jayden y yo soñando con ellas.
+                Estando despiertos, les dare un besito en la mejilla y al cerrar sus ojitos, sentiran mi cariño 
+                recorrer sus dias. Sabran con mi mirada que son eternamente preciosos y sabran con mis manos al tocar su 
+                linda carita cuanto es que los desee toda una vida.
+                Llegara el momemnto en que sentiremos la noche, apagare las luces del cuarto y los abrazare sin que nada importe.
+                Donde brotan mis palabras, brotara su nombre. Y donde antes mis tormentas salian a flote, estaran tu y sinclair con un remo y un bote.
+                Se bien que estan en mis caminos. Se que los tendre conmigo. Se que seran mi ultimo suspiro antes de cerrar mis ojitos
+                y aun a su lado, soñare con ambos. y al abrirlos, los mirare como si fuese la primera vez que los miro. Incluso
+                si eso pasa solo en mis sueños, construiria un hogar solo para esperarlos en ellos. Estando despierto, los voy a pensar
+                y desear. Esperare la noche, en donde mis sueños los van a encontrar para poderlos abrazar. ❤️🫂
+
+               <p>Los amoooooooooooo infinitamente mi familia pato-gatuna millones de graciaaaaaaas por estar conmigo alegrando toditos mis dias ❤️🥹🐈🦆</p> 
+            </p>
+        </div>
+
+        <!-- Galería de miniaturas (Imágenes y Videos) -->
+        <div class="thumbnail-container">
+            <!-- Imágenes -->
+            <img src="img/michin (1).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (2).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (3).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (4).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (5).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (6).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (7).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (8).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (9).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (10).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (11).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (12).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (13).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (14).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (15).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (16).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+
+            <img src="img/michin (17).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (18).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (19).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (20).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (21).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (22).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (23).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (24).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (25).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (26).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (27).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (28).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (29).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (30).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (31).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (32).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (33).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (34).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (35).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (36).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+
+            <img src="img/michin (37).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (38).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (39).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (40).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (41).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (42).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (43).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (44).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (45).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (46).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (47).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (48).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+            <img src="img/michin (49).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (50).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (51).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+            <img src="img/michin (52).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+        
+            <img src="img/michin (53).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (54).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (55).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (56).jpg" alt="Imagen 1" onclick="openLightbox(this)">
+
+            <img src="img/michin (57).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (58).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (59).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (60).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+            <img src="img/michin (61).jpg" alt="Imagen 2" onclick="openLightbox(this)">
+
+
+
+              <!-- Video (Miniatura) -->
+              <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (1).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (2).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (3).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (4).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (5).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (6).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (7).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            <div class="video-container">
+                <video controls width="100%">
+                    <source src="video/video_michin (8).mp4" type="video/mp4">
+                    Tu navegador no soporta este formato de video.
+                </video>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Lightbox para Imagen -->
+    <div class="lightbox" id="lightbox">
+        <button class="close-btn" onclick="closeLightbox()">×</button>
+        <img id="lightbox-img" src="" alt="Imagen ampliada">
+    </div>
+
+    <!-- Lightbox para Video -->
+    <div class="video-lightbox" id="video-lightbox">
+        <button class="close-btn" onclick="closeVideoLightbox()">×</button>
+        <video id="lightbox-video" controls width="80%">
+            <source src="" type="video/mp4">
+            Tu navegador no soporta este formato de video.
+        </video>
+    </div>
+
+    <script>
+        // Función para abrir una imagen en el lightbox
+        function openLightbox(imgElement) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = imgElement.src;
+            lightbox.style.display = 'flex';
+        }
+
+        // Función para cerrar el lightbox de imagen
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+        }
+
+        // Función para abrir un video en el lightbox
+        function openVideoLightbox(videoSrc) {
+            const videoLightbox = document.getElementById('video-lightbox');
+            const videoElement = document.getElementById('lightbox-video');
+            videoElement.src = videoSrc;
+            videoLightbox.style.display = 'flex';
+        }
+
+        // Función para cerrar el lightbox de video
+        function closeVideoLightbox() {
+            const videoLightbox = document.getElementById('video-lightbox');
+            const videoElement = document.getElementById('lightbox-video');
+            videoElement.pause();  // Pausa el video cuando se cierra
+            videoElement.src = '';  // Limpia la fuente para evitar que se siga cargando
+            videoLightbox.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
